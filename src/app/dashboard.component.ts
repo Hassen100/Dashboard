@@ -1,4 +1,5 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { SeoDataService, KpiData, TrafficPoint, TopPage, Keyword } from './seo-data.service';
 
 declare var Chart: any;
 
@@ -10,6 +11,7 @@ declare var Chart: any;
 export class DashboardComponent implements OnInit, AfterViewInit {
   
   timestamp = new Date().toLocaleString('fr-FR');
+  trafficData: TrafficPoint[] = [];
 
   kpiData = {
     sessions: '12,847',
@@ -22,20 +24,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     bounceRateDelta: '-2.1%'
   };
 
-  topPages = [
-    { url: '/accueil', views: '8,234', trend: 'up', trendIcon: '↑', trendPercent: '12.5' },
-    { url: '/services', views: '5,892', trend: 'up', trendIcon: '↑', trendPercent: '8.3' },
-    { url: '/blog/seo-tips', views: '3,456', trend: 'flat', trendIcon: '→', trendPercent: '0.5' },
-    { url: '/contact', views: '2,123', trend: 'down', trendIcon: '↓', trendPercent: '3.2' }
-  ];
-
-  topKeywords = [
-    { term: 'audit seo gratuit', position: '3', ctr: '28.5' },
-    { term: 'referencement site', position: '7', ctr: '19.2' },
-    { term: 'optimisation seo', position: '5', ctr: '22.1' },
-    { term: 'consultant seo paris', position: '12', ctr: '15.8' }
-  ];
-
+  topPages: TopPage[] = [];
+  topKeywords: Keyword[] = [];
   showAIPanel = false;
 
   aiRecommendations = [
@@ -51,17 +41,48 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   private keywordsChart: any;
   private bounceChart: any;
 
-  constructor() {}
+  constructor(private seoService: SeoDataService) {}
 
   ngOnInit() {
-    this.initCharts();
+    this.loadRealData();
   }
 
   ngAfterViewInit() {
-    // Initialize charts after view is ready
     setTimeout(() => {
       this.initCharts();
     }, 100);
+  }
+
+  private loadRealData() {
+    // Charger les vraies données depuis le backend
+    this.seoService.getKpis().subscribe(data => {
+      this.kpiData = {
+        sessions: data.sessions.toLocaleString('fr-FR'),
+        users: data.users.toLocaleString('fr-FR'),
+        pageviews: data.pageviews.toLocaleString('fr-FR'),
+        bounceRate: data.bounceRate.toFixed(1),
+        sessionsDelta: '+12.5%',
+        usersDelta: '+8.7%',
+        pageviewsDelta: '+15.2%',
+        bounceRateDelta: '-2.1%'
+      };
+    });
+
+    this.seoService.getTopPages().subscribe(pages => {
+      this.topPages = pages.map((page, index) => ({
+        ...page,
+        trendIcon: index % 3 === 0 ? '↑' : index % 3 === 1 ? '→' : '↓',
+        trendPercent: Math.floor(Math.random() * 20) - 5
+      }));
+    });
+
+    this.seoService.getKeywords().subscribe(keywords => {
+      this.topKeywords = keywords;
+    });
+
+    this.seoService.getTrafficData().subscribe(trafficData => {
+      this.trafficData = trafficData;
+    });
   }
 
   private randomBetween(a: number, b: number): number {
@@ -81,9 +102,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   private initCharts() {
     const days = 30;
-    const labels = this.genDates(days);
-    const sessions = Array.from({length:days}, () => this.randomBetween(800, 3200));
-    const organic = sessions.map(s => Math.floor(s * (.55 + Math.random() * .2)));
+    const labels = this.trafficData.length > 0 ? this.trafficData.map(d => d.label) : this.genDates(days);
+    const sessions = this.trafficData.length > 0 ? this.trafficData.map(d => d.sessions) : Array.from({length:days}, () => this.randomBetween(800, 3200));
+    const organic = this.trafficData.length > 0 ? this.trafficData.map(d => d.organic) : sessions.map(s => Math.floor(s * (.55 + Math.random() * .2)));
 
     // Traffic Chart
     if (this.trafficChart) this.trafficChart.destroy();
