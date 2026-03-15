@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>SEO Pulse Board</title>
+  
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H6L4CJQ6J8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-H6L4CJQ6J8');
+  </script>
+  
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -735,6 +746,12 @@ function updateTables() {
 
 // ── Buttons ───────────────────────────────────────────────────────────
 function applyFilters() {
+  // Track filter application
+  gtag('event', 'apply_filters', {
+    'event_category': 'dashboard_interaction',
+    'event_label': 'filters_applied'
+  });
+  
   showLoading();
   setTimeout(() => {
     updateKPIs();
@@ -749,11 +766,24 @@ function applyFilters() {
 function verifyUrl() {
   const url = document.getElementById('pageUrl').value.trim();
   if (!url) { showAlert('Veuillez saisir une URL.', 'error'); return; }
+  
+  // Track URL verification
+  gtag('event', 'verify_url', {
+    'event_category': 'dashboard_interaction',
+    'event_label': url
+  });
+  
   try { new URL(url); showAlert('✓ URL valide.', 'success'); }
   catch { showAlert('✗ URL invalide. Format: https://example.com/page', 'error'); }
 }
 
 function syncGoogle() {
+  // Track Google sync
+  gtag('event', 'sync_google', {
+    'event_category': 'dashboard_interaction',
+    'event_label': 'google_analytics_sync'
+  });
+  
   showLoading();
   setTimeout(() => {
     hideLoading();
@@ -772,6 +802,12 @@ const AI_RECS = [
 ];
 
 function generateAIRecommendations() {
+  // Track AI recommendations generation
+  gtag('event', 'generate_ai_recommendations', {
+    'event_category': 'dashboard_interaction',
+    'event_label': 'ai_recommendations'
+  });
+  
   showLoading();
   setTimeout(() => {
     hideLoading();
@@ -791,6 +827,12 @@ function generateAIRecommendations() {
 }
 
 function logout() {
+  // Track logout
+  gtag('event', 'logout', {
+    'event_category': 'dashboard_interaction',
+    'event_label': 'user_logout'
+  });
+  
   if (confirm('Se déconnecter du tableau de bord ?')) {
     showAlert('Déconnexion…', 'info');
   }
